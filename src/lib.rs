@@ -398,7 +398,7 @@ impl QuicP2p {
                             "Failed to bind to port: {} - Error: {:?} - {}. Trying random port.",
                             DEFAULT_PORT_TO_TRY, e, e
                         );
-                        unwrap!(ep_builder.bind(&(ip, 0)))
+                        unwrap!(ep_builder.bind(&(ip, 12345)))
                     }
                 }
             };
