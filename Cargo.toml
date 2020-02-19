@@ -29,7 +29,8 @@ derive_more = "^0.99.2"
 webpki = "~0.21.2"
 
 [dependencies.quinn]
-version = "^0.5.3" 
+git = "https://github.com/lionel1704/quinn"
+branch = "ios-fix"
 default-features = false
 
 [dev-dependencies]
