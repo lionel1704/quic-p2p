@@ -179,7 +179,7 @@ pub fn write_to_peer_connection(peer: Peer, conn: &QConn, wire_msg: WireMsg, tok
             return;
         }
 
-        utils::handle_send_success(user_msg);
+        // utils::handle_send_success(user_msg);
     };
 
     let _ = tokio::spawn(leaf);
