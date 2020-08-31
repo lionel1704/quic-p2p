@@ -7,11 +7,7 @@
 // specific language governing permissions and limitations relating to use of the SAFE Network
 // Software.
 
-use super::{
-    api::Message,
-    error::{Error, Result},
-    wire_msg::WireMsg,
-};
+use super::{api::Message, error::Result, wire_msg::WireMsg};
 use bytes::Bytes;
 use futures::{lock::Mutex, stream::StreamExt};
 use log::{trace, warn};
@@ -230,6 +226,27 @@ impl IncomingMessages {
             Some(Ok((send, recv))) => read_bytes(recv, max_msg_size)
                 .await
                 .map(|bytes| (bytes, send)),
+        }
+    }
+}
+
+async fn read_bytes_without_limit(recv: &mut quinn::RecvStream) -> Option<Vec<u8>> {
+    let mut data = Vec::new();
+    loop {
+        // TBD: does this replace the data in the buffer
+        // or append to it
+        match recv.read(&mut data).await {
+            Ok(Some(len)) => {
+                trace!("Read {} bytes from stream", len);
+            }
+            Ok(None) => {
+                trace!("Read from stream compelte. Read {} bytes", data.len());
+                return Some(data);
+            }
+            Err(err) => {
+                log::error!("Error reading data from stream: {}", err);
+                return None;
+            }
         }
     }
 }
