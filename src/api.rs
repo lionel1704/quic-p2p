@@ -36,6 +36,7 @@ pub const DEFAULT_MAX_ALLOWED_MSG_SIZE: usize = 500 * 1024 * 1024; // 500MiB
 pub const DEFAULT_PORT_TO_TRY: u16 = 12000;
 
 /// Message received from a peer
+#[derive(Debug)]
 pub enum Message {
     /// A message sent by peer on a uni-directional stream
     UniStream {

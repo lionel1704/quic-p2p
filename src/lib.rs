@@ -49,6 +49,7 @@
 )]
 
 mod api;
+#[allow(dead_code)]
 mod bootstrap_cache;
 mod config;
 mod connections;

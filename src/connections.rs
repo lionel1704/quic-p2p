@@ -260,7 +260,7 @@ async fn send_msg(
     // Then send message flag over QUIC
     send_stream.write_all(&[msg_flag]).await?;
 
-    send_stream.finish().await?;
+    // send_stream.finish().await?;
 
     trace!("Message was sent to remote peer: {}", peer_addr,);
 
@@ -287,5 +287,11 @@ impl SendStream {
     pub async fn finish(&mut self) -> Result<()> {
         self.quinn_send_stream.finish().await?;
         Ok(())
+    }
+}
+
+impl std::fmt::Debug for SendStream {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "SendStream {{ ... }}")
     }
 }
