@@ -85,7 +85,7 @@ async fn main() -> Result<(), Error> {
         }
     };
 
-    let mut endpoint = qp2p.new_endpoint()?;
+    let mut endpoint = qp2p.new_endpoint().await?;
     let local_addr = endpoint.local_addr();
     
     let public_addr = if args.forward_port {
@@ -100,6 +100,13 @@ async fn main() -> Result<(), Error> {
         public_addr        
     );
 
+    // Message is declared here and later assigned so that it is held in memory
+    // long enough for the peer to read the Echo Service responses before it is
+    // dropped and the streams are closed
+    #[allow(unused)]
+    let mut message: qp2p::Message;
+    
+    #[allow(unused)]
     loop {
         println!("Waiting for connections...\n");
         let mut incoming = endpoint.listen();
@@ -110,7 +117,7 @@ async fn main() -> Result<(), Error> {
         let connecting_peer = messages.remote_addr();
         println!("Incoming connection from: {}", &connecting_peer);
 
-        let _message = messages
+        message = messages
             .next()
             .await
             .ok_or_else(|| anyhow!("Missing expected incomming message"))?;

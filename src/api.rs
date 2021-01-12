@@ -220,7 +220,7 @@ impl QuicP2p {
     ///     config.ip = Some(IpAddr::V4(Ipv4Addr::LOCALHOST));
     ///     config.port = Some(3000);
     ///     let mut quic_p2p = QuicP2p::with_config(Some(config.clone()), Default::default(), true)?;
-    ///     let mut endpoint = quic_p2p.new_endpoint()?;
+    ///     let mut endpoint = quic_p2p.new_endpoint().await?;
     ///     let peer_addr = endpoint.socket_addr().await?;
     ///
     ///     config.port = Some(3001);
@@ -230,7 +230,7 @@ impl QuicP2p {
     /// }
     /// ```
     pub async fn bootstrap(&self) -> Result<(Endpoint, Connection, IncomingMessages)> {
-        let endpoint = self.new_endpoint()?;
+        let endpoint = self.new_endpoint().await?;
 
         trace!("Bootstrapping with nodes {:?}", endpoint.bootstrap_nodes());
         if endpoint.bootstrap_nodes().is_empty() {
@@ -274,7 +274,7 @@ impl QuicP2p {
     ///     let mut config = Config::default();
     ///     config.ip = Some(IpAddr::V4(Ipv4Addr::LOCALHOST));
     ///     let mut quic_p2p = QuicP2p::with_config(Some(config.clone()), Default::default(), true)?;
-    ///     let mut peer_1 = quic_p2p.new_endpoint()?;
+    ///     let mut peer_1 = quic_p2p.new_endpoint().await?;
     ///     let peer1_addr = peer_1.socket_addr().await?;
     ///
     ///     let (peer_2, connection) = quic_p2p.connect_to(&peer1_addr).await?;
@@ -282,7 +282,7 @@ impl QuicP2p {
     /// }
     /// ```
     pub async fn connect_to(&self, node_addr: &SocketAddr) -> Result<(Endpoint, Connection)> {
-        let endpoint = self.new_endpoint()?;
+        let endpoint = self.new_endpoint().await?;
         let (conn, _) = endpoint.connect_to(node_addr).await?;
 
         Ok((endpoint, conn))
@@ -302,11 +302,11 @@ impl QuicP2p {
     ///     let mut config = Config::default();
     ///     config.ip = Some(IpAddr::V4(Ipv4Addr::LOCALHOST));
     ///     let mut quic_p2p = QuicP2p::with_config(Some(config.clone()), Default::default(), true)?;
-    ///     let endpoint = quic_p2p.new_endpoint()?;
+    ///     let endpoint = quic_p2p.new_endpoint().await?;
     ///     Ok(())
     /// }
     /// ```
-    pub fn new_endpoint(&self) -> Result<Endpoint> {
+    pub async fn new_endpoint(&self) -> Result<Endpoint> {
         trace!("Creating a new endpoint");
 
         let bootstrap_nodes: Vec<SocketAddr> = self
@@ -332,7 +332,7 @@ impl QuicP2p {
             self.client_cfg.clone(),
             bootstrap_nodes,
             self.qp2p_config.clone(),
-        )?;
+        ).await?;
 
         Ok(endpoint)
     }
