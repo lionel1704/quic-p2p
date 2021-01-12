@@ -16,8 +16,8 @@ pub fn new_qp2p() -> Result<QuicP2p> {
 fn new_qp2p_with_hcc(hard_coded_contacts: HashSet<SocketAddr>) -> Result<QuicP2p> {
     let qp2p = QuicP2p::with_config(
         Some(Config {
-            port: Some(0),
-            ip: Some(IpAddr::V4(Ipv4Addr::LOCALHOST)),
+            local_port: Some(0),
+            local_ip: Some(IpAddr::V4(Ipv4Addr::LOCALHOST)),
             hard_coded_contacts,
             ..Config::default()
         }),

@@ -62,9 +62,13 @@ impl Endpoint {
         qp2p_config: Config,
     ) -> Result<Self> {
         let local_addr = quic_endpoint.local_addr()?;
+        let public_addr = match (qp2p_config.external_ip, qp2p_config.external_port) {
+            (Some(ip), Some(port)) => Some(SocketAddr::new(ip, port)),
+            _ => None
+        };
         Ok(Self {
             local_addr,
-            public_addr: None,
+            public_addr,
             quic_endpoint,
             quic_incoming: Arc::new(Mutex::new(quic_incoming)),
             client_cfg,

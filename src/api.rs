@@ -114,15 +114,16 @@ impl QuicP2p {
         bootstrap_nodes: &[SocketAddr],
         use_bootstrap_cache: bool,
     ) -> Result<Self> {
+        crate::utils::init_logging();
         let cfg = unwrap_config_or_default(cfg)?;
         debug!("Config passed in to qp2p: {:?}", cfg);
 
         let (port, allow_random_port) = cfg
-            .port
+            .local_port
             .map(|p| (p, false))
             .unwrap_or((DEFAULT_PORT_TO_TRY, true));
 
-        let ip = cfg.ip.unwrap_or_else(|| {
+        let ip = cfg.local_ip.unwrap_or_else(|| {
             let mut our_ip = IpAddr::V4(Ipv4Addr::UNSPECIFIED);
 
             // check hard coded contacts for being local (aka loopback)
@@ -182,8 +183,8 @@ impl QuicP2p {
             .upnp_lease_duration
             .unwrap_or(DEFAULT_UPNP_LEASE_DURATION_SEC);
 
-        qp2p_config.ip = Some(ip);
-        qp2p_config.port = Some(port);
+        qp2p_config.local_ip = Some(ip);
+        qp2p_config.local_port = Some(port);
         qp2p_config.keep_alive_interval_msec = Some(keep_alive_interval_msec);
         qp2p_config.idle_timeout_msec = Some(idle_timeout_msec);
         qp2p_config.upnp_lease_duration = Some(upnp_lease_duration);
@@ -372,8 +373,8 @@ fn bind(
 
 fn unwrap_config_or_default(cfg: Option<Config>) -> Result<Config> {
     let mut cfg = cfg.map_or(Config::read_or_construct_default(None)?, |cfg| cfg);
-    if cfg.ip.is_none() {
-        cfg.ip = crate::igd::get_local_ip().ok();
+    if cfg.local_ip.is_none() {
+        cfg.local_ip = Some(crate::igd::get_local_ip()?);
     };
     if cfg.clean {
         Config::clear_config_from_disk(None)?;

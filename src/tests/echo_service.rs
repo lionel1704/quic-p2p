@@ -8,8 +8,8 @@ async fn echo_service() -> Result<()> {
     // Endpoint builder
     let qp2p = QuicP2p::with_config(
         Some(Config {
-            port: None,
-            ip: None,
+            local_port: None,
+            local_ip: None,
             forward_port: true,
             ..Config::default()
         }),
