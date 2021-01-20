@@ -156,6 +156,13 @@ impl Endpoint {
         }
     }
 
+    /// Returns the existing connection to the peer from the connection pool.
+    pub fn get_existing_connection(&self, peer_addr: &SocketAddr) -> Option<Connection> {
+        self.connection_pool
+            .get(peer_addr)
+            .map(|(conn, guard)| Connection::new(conn, guard))
+    }
+
     /// Connects to another peer.
     ///
     /// Returns `Connection` which is a handle for sending messages to the peer and

@@ -106,4 +106,7 @@ pub enum Error {
     /// The message exceeds the maximum message length allowed.
     #[error("Maximum data length exceeded, lengh: {0}")]
     MaxLengthExceeded(usize),
+    /// We don't have a connection to this peer
+    #[error("We don't have a connection to this peer")]
+    NoConnection,
 }
