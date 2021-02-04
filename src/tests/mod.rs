@@ -7,6 +7,7 @@ use std::{
 };
 
 mod common;
+mod multiple_connections;
 
 /// Constructs a `QuicP2p` node with some sane defaults for testing.
 pub fn new_qp2p() -> Result<QuicP2p> {
