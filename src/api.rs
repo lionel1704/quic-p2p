@@ -15,9 +15,11 @@ use super::{
     peer_config::{self, DEFAULT_IDLE_TIMEOUT_MSEC, DEFAULT_KEEP_ALIVE_INTERVAL_MSEC},
 };
 use futures::{future, TryFutureExt};
-use log::{debug, error, info, trace, warn};
+#[cfg(not(feature = "no-igd"))]
+use log::warn;
+use log::{debug, error, info, trace};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, UdpSocket};
-use std::path::PathBuf;
+use std::{collections::HashSet, path::PathBuf};
 
 /// In the absence of a port supplied by the user via the config we will first try using this
 /// before using a random port.
@@ -315,25 +317,40 @@ fn bind(
 
 fn unwrap_config_or_default(cfg: Option<Config>) -> Result<Config> {
     let mut cfg = cfg.map_or(Config::read_or_construct_default(None)?, |cfg| cfg);
+
     if cfg.local_ip.is_none() {
-        cfg.local_ip = match crate::igd::get_local_ip() {
-            Ok(addr) => Some(addr),
-            Err(err) => {
-                warn!("Error realizing local IP using IGD gateway: {}", err);
-                let socket = UdpSocket::bind("0.0.0.0:0")?;
-                let mut local_ip = None;
-                for addr in cfg.hard_coded_contacts.iter() {
-                    if let Ok(Ok(local_addr)) = socket.connect(addr).map(|()| socket.local_addr()) {
-                        local_ip = Some(local_addr.ip());
-                        break;
-                    }
+        #[cfg(feature = "no-igd")]
+        {
+            cfg.local_ip = realize_ip_from_contacts(&cfg.hard_coded_contacts)?;
+        }
+
+        #[cfg(not(feature = "no-igd"))]
+        {
+            cfg.local_ip = match crate::igd::get_local_ip() {
+                Ok(addr) => Some(addr),
+                Err(err) => {
+                    warn!("Error realizing local IP using IGD gateway: {}", err);
+                    realize_ip_from_contacts(&cfg.hard_coded_contacts)?
                 }
-                local_ip
             }
         }
-    };
+    }
+
     if cfg.clean {
         Config::clear_config_from_disk(None)?;
     }
+
     Ok(cfg)
+}
+
+fn realize_ip_from_contacts(contacts: &HashSet<SocketAddr>) -> Result<Option<IpAddr>> {
+    debug!("Realizing local IP by connecting to contacts");
+    let socket = UdpSocket::bind("0.0.0.0:0")?;
+    for addr in contacts.iter() {
+        if let Ok(Ok(local_addr)) = socket.connect(addr).map(|()| socket.local_addr()) {
+            return Ok(Some(local_addr.ip()));
+        }
+    }
+
+    Ok(None)
 }
